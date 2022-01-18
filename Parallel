@@ -1,0 +1,191 @@
+﻿using System;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.InteropServices;
+
+namespace HelloApp
+{
+    class AnyClass
+    {
+       public string anything { get; set; }
+        public string something { get; set; }
+    }
+    class Program
+    {
+        public static void Display()
+        {
+            Console.WriteLine("LoveParallels");
+
+            Console.WriteLine("And Parallels");
+        }
+        /////////////////////////////////////////// //////
+
+        public static void ListEachMethod()
+        {
+            List<string> ListForTask = new List<string> { "Tasks", "Parallel", "Things" };
+            foreach (var item in ListForTask)
+            {
+                Console.WriteLine(item + "!");
+            }
+        }
+
+            public static int MultiplyMethod()
+        {
+            int a = 3;
+            int b = 15;
+            int MultiplyResult = a * b;
+            return MultiplyResult;
+        }
+     
+        /// /////////////////////////////////////////
+    
+        public static int ContiMultiplyMethod(int a, int b)
+        {
+            int MultiplyResult = a * b;
+            return MultiplyResult;
+        }
+
+        static void Display(int Multiply)
+        {
+            Console.WriteLine($"Произведение : {Multiply}");
+        }
+
+
+
+        /// /////////////////////////////////////////////
+        ////////////////////////////////////////////////
+        ///////////////////////////////////////////////
+
+
+        static void ParallelCW()
+        {
+            Console.WriteLine($"Задача №1 {Task.CurrentId}");
+            Thread.Sleep(5000);
+        }
+        static void SecondParallelCW()
+        {
+            Console.WriteLine($"Задача №2 {Task.CurrentId}");
+            Console.WriteLine("ParallelClassThing Second");
+            Thread.Sleep(7000);
+
+        }
+        /// /////////////////////////////////////////////
+        ////////////////////////////////////////////////
+        ///////////////////////////////////////////////
+
+        static void ParallelFor(int x)
+        {
+            int num = 0;
+            int result = x + num;
+            Console.WriteLine($"Выполняется задача {Task.CurrentId} {result}");
+            Console.WriteLine();
+        }
+
+
+        static void Main(string[] args)
+        {
+            Task task4 = new Task(Display);
+            task4.Start();
+            task4.Wait();
+
+            Console.WriteLine("Start of Main(0)");
+
+            Console.WriteLine("End of Main(0)");
+            /////////////////////////////////////
+            /////////////////////////////////////
+            ////////////////////////////////////
+            var outer = Task.Factory.StartNew(() =>
+            {
+                Console.WriteLine("Outer Task ");
+                var innerTask = Task.Factory.StartNew(() =>
+                {
+                    Console.WriteLine("InnerTaskStart");
+                    Thread.Sleep(30);
+                    Console.WriteLine("InnerTAskFinished");
+
+                }, TaskCreationOptions.AttachedToParent);
+
+            });
+            outer.Wait();
+
+
+            Console.WriteLine("Зaвершение Main(1)");
+            /////////////////////////////////////
+            /////////////////////////////////////
+            ////////////////////////////////////
+
+            Task[] tasks = new Task[3]
+            {
+                new Task(()=>Console.WriteLine ("Первая задача")),
+            new Task(() => Console.WriteLine("Вторая задача")),
+            new Task(() => Console.WriteLine("Третья задача"))
+
+            };
+            foreach (var item in tasks)
+            {
+                item.Start();
+            }
+            Task.WaitAll(tasks);
+
+            Console.WriteLine("Завершение main(2)");
+
+            /////////////////////////////////////
+            //////////Paramitrized///////////////
+            ////////////////////////////////////
+
+
+            Task<int> taskMultiply = new Task<int>(() => MultiplyMethod());
+            taskMultiply.Start();
+            Console.WriteLine($"Результат умножения {taskMultiply.Result}");
+            taskMultiply.Wait();
+
+            Task<AnyClass> TaskAnyClass = new Task<AnyClass>(() =>
+            {
+                return new AnyClass() { anything = "Strange exemple, ", something = "YEAH?" };
+            });
+            TaskAnyClass.Start();
+            AnyClass ResultOFAnyClass = TaskAnyClass.Result;
+            Console.WriteLine($"{ResultOFAnyClass.anything}{ResultOFAnyClass.something}");
+            TaskAnyClass.Wait();
+            Console.WriteLine("Завершение Main(3)");
+
+            /////////////////////////////////////
+            //////////////ContinueWith///////////
+            /////////////////////////////////////
+
+            Task<int> FirstTask = new Task<int>(() => ContiMultiplyMethod(3,5));
+            
+            Task SecondTask = FirstTask.ContinueWith(multiply => Display(multiply.Result));
+            FirstTask.Start();
+            SecondTask.Wait();
+            Console.WriteLine("Завершение Main(4)");
+
+            /////////////////////////////////////
+            /////////////////////////////////////
+            ////////////////////////////////////
+
+
+            Parallel.Invoke(ParallelCW, () =>
+            {
+                Console.WriteLine("ParallelClassThing First");
+                Thread.Sleep(5000);
+            },
+            () => SecondParallelCW());
+
+            /////////////////////////////////////
+            /////////////////////////////////////
+            ////////////////////////////////////
+
+
+            Parallel.For(1,10,ParallelFor);
+            
+
+
+
+        }
+    }
+}
